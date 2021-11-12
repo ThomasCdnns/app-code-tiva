@@ -1,14 +1,16 @@
 /*
-  ReadAnalogVoltage
-  Reads an analog input on pin A3, converts it to voltage, and prints the result to the serial monitor.
-  Attach the center pin of a potentiometer to pin A3, and the outside pins to +3V and ground.
+  AnalogReadSerial
+  Reads an analog input on pin A3, prints the result to the serial monitor.
+  Attach the center pin of a potentiometer to pin A3, and the outside pins to ~3V and ground.
   
   Hardware Required:
   * MSP-EXP430G2 LaunchPad
-  * Potentiometer
- 
+  * 10-kilohm Potentiometer
+  * hook-up wire
+
   This example code is in the public domain.
 */
+
 // the setup routine runs once when you press reset:
 void setup() {
   // initialize serial communication at 9600 bits per second:
@@ -19,9 +21,7 @@ void setup() {
 void loop() {
   // read the input on analog pin A3:
   int sensorValue = analogRead(A3);
-  float voltage = sensorValue * (3.3 / 4096.0);  
-  
   // print out the value you read:
-  Serial.println(voltage);
-  delay(50);
+  Serial.println(sensorValue);
+  delay(10); // delay in between reads for stability
 }
