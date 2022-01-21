@@ -15,7 +15,6 @@
 #define PORTI2C   2    // Selection du port I2C 0, 1 ou 2
 
 
-
 //initialize I2C module 0
 //Slightly modified version of TI's example code
 void InitI2C0(void)
@@ -442,3 +441,21 @@ void DisplayString(int x,int y,char *s)
         s++;
        }
 }
+
+char hexToAscii(char digH) {
+    digH &= 0x0F;
+    char ascii = digH + 0x30;
+    return digH > 9 ? ascii + 0x07 : ascii;
+}
+
+void DisplayInt(int x, int y, int number)
+    {
+        int length = log10(number);
+        x += 6 * length;
+        while(number > 0)
+        {
+            DisplayCarac(x, y, hexToAscii(number % 10));
+            x -= 6;
+            number /= 10;
+        }
+    }

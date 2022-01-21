@@ -1,19 +1,47 @@
 #define  RCV_TIM_LIMIT  10000000
 #define MY_LEDV   33
-#define MY_LEDJ   RED_LED 
-#define MY_INPUT  18 
+#define MY_LEDJ   33 
+#define MY_INPUT  18
 #define GIL_SW2  11
 #define GIL_SW1  12
 #define GIL_BUTTON 10
+
 
 #define BUF_SIZE  500     // size of the buffer containing the input samples. Must be greater than the order of the filters + K
 
 #define KP 50            // number of samples for the estimation of the signal power
 
-#define S 200//to define          // Threshold applied to the signal power  for the signal detection
+#define R_SIZE 500
+#define alpha 0.5
+
+const float S = 0.000568;          // Threshold applied to the signal power  for the signal detection
 
 float buf[BUF_SIZE];      // Buffer containing the input samples
 float pIn;                // input power
+
+// ECG detection variables
+
+//Filtered Signal storage
+double data_filtered[] = {0, 0};
+const int k = 1;
+
+//maximum detection
+float temp_r = 0;
+float temp_s = 0;
+float margin_r = 5;
+float temp_time_r = 0 ;
+float initial_value = 0;
+bool isSignal = 0;
+
+
+//R's storage
+float r[R_SIZE];
+float r_time[R_SIZE];
+int rn = 0;
+
+//pulse rate (ECG calculation)
+float t_sum = 0;
+float heart_rate = 0;
 
 unsigned long current_time = 0;
 unsigned long current_time0 = 0;
@@ -31,9 +59,6 @@ void setup() {
 
   Serial.begin(9600);
   Serial1.begin(9600);
-  pinMode(MY_LEDJ, OUTPUT);
-  pinMode(MY_LEDV, OUTPUT);
-  pinMode(RED_LED, OUTPUT);
   pinMode(GIL_SW1, INPUT_PULLUP);
   pinMode(GIL_SW2, INPUT_PULLUP);
   pinMode(GIL_BUTTON, INPUT_PULLUP);
@@ -106,46 +131,47 @@ void loop() {
   // Read data : shift the previous samples in the buffer ...
   for (i = BUF_SIZE - 2; i >= 0; i--)
   {
-    //buf[i] = buf[i-1]; // To be completed
     buf[i] = buf[i-1];
   }
+  
   // ... and acquire the new sample
   current_time = micros() ;
   while (current_time < next_sample_time)
   {
-    current_time  = micros();                  //To be completed
+    current_time = micros();
   }
-  buf[0] = (float) analogRead(MY_INPUT) - 2048.0;
 
   // Define the next sampling time
   next_sample_time += (unsigned long)Ts;
 
- 
-  // Update "instantaneous" power
-  pIn = 0;
-  for (i = 0; i < KP; i++)
-  {
-    pIn = pIn + pow(buf[i],2);                   //-- to be completed
-  }
-  pIn = pIn / (float)KP;
-  
+  //Low Pass filter
+  data_filtered[k] = alpha * buf[0] + (1 - alpha) * data_filtered[k-1];
+  data_filtered[k-1] = data_filtered[k];
 
-  // Display ... sommetimes - be careful, it disturbs the sampling interval
-  if (compteur == 200)
-  {
-    Serial.println(pIn);
-    compteur = 0;
+  Serial.println((float) analogRead(MY_INPUT) - 2048.0);
+
+  if ((buf[0] > 0) && (isSignal = 0)){
+    initial_value = data_filtered[k];
+    isSignal = 1;
   }
-  compteur ++;
-  
-  // Test the amplitude of the instantaneous power
-  if (pIn > S)
-  {
-       digitalWrite(MY_LEDJ, HIGH);   // Switch on the LED to indicate that an audio signal is detected
+
+  else if (isSignal = 1){
+    // Detect temp R and temp S
+  if (temp_r < data_filtered[k] && (micros()-temp_time_r)>0.300){
+    temp_r = data_filtered[k];
+    temp_time_r = micros();
   }
-  else      //  No useful audio signal detected
-  {
-      digitalWrite(MY_LEDJ, LOW);
+  if (data_filtered[k] < initial_value){
+    r[rn] = temp_r;
+    r_time[rn] = temp_time_r;
+    rn+=1;
   }
+  }
+
+  for (i = 0; i < rn; i++)
+  {
+    float t_sum = r_time[i];
+  }
+  heart_rate = t_sum / rn;
 
 }

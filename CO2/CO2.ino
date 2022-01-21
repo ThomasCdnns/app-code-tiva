@@ -20,8 +20,7 @@ void setup() {
 // the loop routine runs over and over again forever:
 void loop() {
   // read the input on analog pin A3:
-  int sensorValue = analogRead(A3);
-  // print out the value you read:
+  int sensorValue = analogRead(A1);
   Serial.println(sensorValue);
-  delay(10); // delay in between reads for stability
+  delay(50); // delay in between reads for stability
 }
