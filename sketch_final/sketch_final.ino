@@ -168,7 +168,6 @@ void loop() {
       digitalWrite(MY_LEDJ, LOW);
   }
 
-
   delay(500);
   
 }
